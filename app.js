@@ -13,19 +13,21 @@ const init = async () => {
         host: 'localhost'
     });
 
-    const swaggerOptions = {
-        info: {
-            title: 'Elecctro Server Challenge',
-            version: Pack.version
-        }
-    };
+    const todosRoutes = require('./routes/todos');
+
+    server.route(todosRoutes);
 
     await server.register([
         Inert,
         Vision,
         {
             plugin: HapiSwagger,
-            options: swaggerOptions
+            options: {
+                info: {
+                    title: 'Elecctro Server Challenge',
+                    version: Pack.version
+                }
+            }
         }
     ]);
 
