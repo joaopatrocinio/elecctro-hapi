@@ -15,7 +15,7 @@ const schema = Joi.object({
 
     createdAt: Joi.date(),
 
-    completedAt: Joi.date()
+    completedAt: Joi.date().allow(null)
 });
 
 module.exports = schema;

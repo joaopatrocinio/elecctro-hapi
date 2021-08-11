@@ -46,5 +46,37 @@ module.exports = [
             }
         },
         handler: Todos.get
+    },
+    {
+        method: 'PATCH',
+        path: '/todos/{id}',
+        options: {
+            description: 'Update todo',
+            notes: 'This route should edit an item on the to-do list. The edited item will be referenced by id using the URL parameter id.',
+            tags: ['api'],
+            validate: {
+                params: Joi.object({
+                    id: Joi.number()
+                        .min(0)
+                        .required()
+                }),
+                payload: Joi.object({
+                    state: Joi.string()
+                        .allow('COMPLETE','INCOMPLETE')
+                        .default('INCOMPLETE'),
+
+                    description: Joi.string()
+                        .max(255)
+                        .default('')
+                }).or('state', 'description')
+            },
+            response: {
+                status: {
+                    200: Todo
+                },
+                failAction: 'log'
+            }
+        },
+        handler: Todos.update
     }
 ];
