@@ -49,7 +49,7 @@ module.exports = [
     },
     {
         method: 'PATCH',
-        path: '/todos/{id}',
+        path: '/todo/{id}',
         options: {
             description: 'Update todo',
             notes: 'This route should edit an item on the to-do list. The edited item will be referenced by id using the URL parameter id.',
@@ -71,12 +71,31 @@ module.exports = [
                 }).or('state', 'description')
             },
             response: {
-                status: {
-                    200: Todo
-                },
+                schema: Todo,
                 failAction: 'log'
             }
         },
         handler: Todos.update
+    },
+    {
+        method: 'DELETE',
+        path: '/todo/{id}',
+        options: {
+            description: 'Delete todo',
+            notes: 'This route removes an item from the to-do list. The item will be referenced by id using the URL parameter id.',
+            tags: ['api'],
+            validate: {
+                params: Joi.object({
+                    id: Joi.number()
+                        .min(0)
+                        .required()
+                })
+            },
+            response: {
+                schema: Joi.array().empty(),
+                failAction: 'log'
+            }
+        },
+        handler: Todos.remove
     }
 ];

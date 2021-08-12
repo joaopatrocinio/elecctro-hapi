@@ -98,4 +98,21 @@ const update = async (request, h) => {
     throw Boom.badRequest('Redundant update to same state.');
 };
 
-module.exports = { insert, get, update };
+const remove = async (request, h) => {
+
+    const todo = await Knex('todos').where({
+        id: request.params.id
+    }).first();
+
+    if (todo === undefined) {
+        throw Boom.notFound('To-do not found.');
+    }
+
+    await Knex('todos').where({
+        id: request.params.id
+    }).del();
+
+    return [];
+};
+
+module.exports = { insert, get, update, remove };
