@@ -73,7 +73,7 @@ const update = async (request, h) => {
     }
 
     // Return 400 if trying to update description of COMPLETE
-    if (request.payload.description !== '') {
+    if (request.payload.description !== '' && request.payload.state === 'COMPLETE') {
         throw Boom.badRequest('Updating description of COMPLETE not allowed.');
     }
 

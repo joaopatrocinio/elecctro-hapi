@@ -9,9 +9,12 @@ const Pack = require('./package');
 const init = async () => {
 
     const server = Hapi.server({
-        port: 3000,
+        port: 3001,
         host: 'localhost',
-        debug: { request: ['error'] }
+        debug: { request: ['error'] },
+        routes: {
+            cors: true
+        }
     });
 
     const todosRoutes = require('./routes/todos');
