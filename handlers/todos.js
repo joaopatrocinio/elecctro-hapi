@@ -14,7 +14,7 @@ const get = (request, h) => {
     let orderBy;
 
     switch (request.query.orderBy) {
-        case 'DESCRIPTION': {
+        case 'DESCRIPTION': case 'DESCRIPTION-REVERSE': {
             orderBy = 'description';
             break;
         }
@@ -31,10 +31,10 @@ const get = (request, h) => {
     }
 
     if (request.query.filter === 'ALL') {
-        return Knex.select().from('todos').orderBy(orderBy);
+        return Knex.select().from('todos').orderBy(orderBy, request.query.orderBy === 'DESCRIPTION-REVERSE' ? 'desc' : 'asc');
     }
 
-    return Knex.select().from('todos').where('state', request.query.filter).orderBy(orderBy);
+    return Knex.select().from('todos').where('state', request.query.filter).orderBy(orderBy, request.query.orderBy === 'DESCRIPTION-REVERSE' ? 'desc' : 'asc');
 };
 
 const update = async (request, h) => {

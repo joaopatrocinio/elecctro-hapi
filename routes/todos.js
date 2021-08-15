@@ -36,7 +36,7 @@ module.exports = [
                         .default('ALL'),
 
                     orderBy: Joi.string()
-                        .allow('DESCRIPTION', 'CREATED_AT', 'COMPLETED_AT')
+                        .allow('DESCRIPTION', 'CREATED_AT', 'COMPLETED_AT', 'DESCRIPTION-REVERSE')
                         .default('CREATED_AT')
                 })
             },
