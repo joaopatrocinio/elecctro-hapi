@@ -53,18 +53,10 @@ const update = async (request, h) => {
         await Knex('todos').where({
             id: request.params.id
         }).update({
-            description: request.payload.description
+            description: request.payload.description,
+            state: request.payload.state === 'COMPLETE' ? request.payload.state : todo.state,
+            completedAt: request.payload.state === 'COMPLETE' ? Knex.fn.now() : todo.state
         });
-
-        // Executes if user is updating description and state at the same time.
-        if (request.payload.state === 'COMPLETE') {
-            await Knex('todos').where({
-                id: request.params.id
-            }).update({
-                state: request.payload.state,
-                completedAt: request.payload.state === 'COMPLETE' ? Knex.fn.now() : null
-            });
-        }
 
         // Return To-do object
         return Knex('todos').where({
