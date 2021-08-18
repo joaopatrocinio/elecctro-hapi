@@ -5,12 +5,14 @@ const Boom = require('@hapi/boom');
 
 const insert = async (request, h) => {
 
-    const insertedId = await Knex('todos').insert(request.payload);
+    const id = request.auth.credentials.user.id;
+    const insertedId = await Knex('todos').insert({ ...request.payload, user_id: id });
     return Knex.select().from('todos').where('id', insertedId).first();
 };
 
 const get = (request, h) => {
 
+    const id = request.auth.credentials.user.id;
     let orderBy;
 
     switch (request.query.orderBy) {
@@ -31,16 +33,25 @@ const get = (request, h) => {
     }
 
     if (request.query.filter === 'ALL') {
-        return Knex.select().from('todos').orderBy(orderBy, request.query.orderBy === 'DESCRIPTION-REVERSE' ? 'desc' : 'asc');
+        return Knex.select()
+            .from('todos')
+            .where('user_id', id)
+            .orderBy(orderBy, request.query.orderBy === 'DESCRIPTION-REVERSE' ? 'desc' : 'asc');
     }
 
-    return Knex.select().from('todos').where('state', request.query.filter).orderBy(orderBy, request.query.orderBy === 'DESCRIPTION-REVERSE' ? 'desc' : 'asc');
+    return Knex.select()
+        .from('todos')
+        .where('state', request.query.filter)
+        .where('user_id', id)
+        .orderBy(orderBy, request.query.orderBy === 'DESCRIPTION-REVERSE' ? 'desc' : 'asc');
 };
 
 const update = async (request, h) => {
 
+    const id = request.auth.credentials.user.id;
     const todo = await Knex('todos').where({
-        id: request.params.id
+        id: request.params.id,
+        user_id: id
     }).first();
 
     if (todo === undefined) {
@@ -51,7 +62,8 @@ const update = async (request, h) => {
     if (todo.state === 'INCOMPLETE' && request.payload.description !== '') {
 
         await Knex('todos').where({
-            id: request.params.id
+            id: request.params.id,
+            user_id: id
         }).update({
             description: request.payload.description,
             state: request.payload.state === 'COMPLETE' ? request.payload.state : todo.state,
@@ -60,7 +72,8 @@ const update = async (request, h) => {
 
         // Return To-do object
         return Knex('todos').where({
-            id: request.params.id
+            id: request.params.id,
+            user_id: id
         }).first();
     }
 
@@ -74,7 +87,8 @@ const update = async (request, h) => {
 
         // Update state
         await Knex('todos').where({
-            id: request.params.id
+            id: request.params.id,
+            user_id: id
         }).update({
             state: request.payload.state,
             completedAt: request.payload.state === 'COMPLETE' ? Knex.fn.now() : null
@@ -82,7 +96,8 @@ const update = async (request, h) => {
 
         // Return To-do object
         return Knex('todos').where({
-            id: request.params.id
+            id: request.params.id,
+            user_id: id
         }).first();
     }
 
@@ -92,8 +107,10 @@ const update = async (request, h) => {
 
 const remove = async (request, h) => {
 
+    const id = request.auth.credentials.user.id;
     const todo = await Knex('todos').where({
-        id: request.params.id
+        id: request.params.id,
+        user_id: id
     }).first();
 
     if (todo === undefined) {
@@ -101,7 +118,8 @@ const remove = async (request, h) => {
     }
 
     await Knex('todos').where({
-        id: request.params.id
+        id: request.params.id,
+        user_id: id
     }).del();
 
     return [];

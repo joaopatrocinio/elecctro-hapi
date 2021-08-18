@@ -56,6 +56,8 @@ const init = async () => {
         }
     });
 
+    server.auth.default('jwt_auth');
+
     server.route(todosRoutes);
     server.route(authRoutes);
 

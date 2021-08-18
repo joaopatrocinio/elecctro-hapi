@@ -21,6 +21,9 @@ module.exports = [
                         .required()
                 }),
                 failAction: 'log'
+            },
+            auth: {
+                mode: 'try'
             }
         },
         handler: AuthHandlers.login
@@ -41,6 +44,9 @@ module.exports = [
                         .required()
                 }),
                 failAction: 'log'
+            },
+            auth: {
+                mode: 'try'
             }
         },
         handler: AuthHandlers.create
@@ -55,9 +61,6 @@ module.exports = [
             response: {
                 schema: Auth,
                 failAction: 'log'
-            },
-            auth: {
-                strategy: 'jwt_auth'
             }
         },
         handler: AuthHandlers.info
@@ -72,9 +75,6 @@ module.exports = [
             response: {
                 schema: Auth,
                 failAction: 'log'
-            },
-            auth: {
-                strategy: 'jwt_auth'
             }
         },
         handler: AuthHandlers.update

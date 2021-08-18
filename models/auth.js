@@ -15,6 +15,7 @@ const schema = Joi.object({
 
     name: Joi.string()
         .max(255)
+        .allow(null)
 });
 
 module.exports = schema;
