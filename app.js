@@ -51,49 +51,34 @@ const init = async () => {
         }
     ]);
 
-    server.auth.strategy('refresh_token', 'jwt', {
-        keys: 'refresh_token_secret',
-        verify: {
-            aud: 'urn:audience:test',
-            iss: 'urn:issuer:test',
-            sub: false,
-            nbf: true,
-            exp: true,
-            maxAgeSec: 2592000, // 1 month
-            timeSkewSec: 15
-        },
-        validate: (artifacts, request, h) => {
-
-            return {
-                isValid: true,
-                credentials: { user: artifacts.decoded.payload.user }
-            };
-        }
-    });
-
-    server.auth.strategy('access_token', 'cookie', {
+    server.auth.strategy('refresh_token', 'cookie', {
         cookie: {
             name: 'token',
             password: 'T0llIiSG0dBdKYBENYJOzcSSAAwieTGz',
-            isSecure: false
+            isSecure: false,
+            path: '/refresh',
+            isHttpOnly: true,
+            ttl: 2592000000 // 1 month
         },
+        keepAlive: true,
         validateFunc: (request, session) => {
 
             const decodedToken = Jwt.token.decode(session.token);
 
             try {
-                Jwt.token.verify(decodedToken, 'auth_token_secret', {
+                Jwt.token.verify(decodedToken, 'refresh_token_secret', {
                     aud: 'urn:audience:test',
                     iss: 'urn:issuer:test',
                     sub: false,
                     nbf: true,
                     exp: true,
-                    maxAgeSec: 300, // 5 minutes
+                    maxAgeSec: 2592000, // 1 month
                     timeSkewSec: 15
                 });
                 return {
                     valid: true,
                     credentials: {
+                        token: session.token,
                         user: {
                             id: session.id
                         }
@@ -105,6 +90,26 @@ const init = async () => {
                     valid: false
                 };
             }
+        }
+    });
+
+    server.auth.strategy('access_token', 'jwt', {
+        keys: 'auth_token_secret',
+        verify: {
+            aud: 'urn:audience:test',
+            iss: 'urn:issuer:test',
+            sub: false,
+            nbf: true,
+            exp: true,
+            maxAgeSec: 300, // 5 minutes
+            timeSkewSec: 15
+        },
+        validate: (artifacts, request, h) => {
+
+            return {
+                isValid: true,
+                credentials: { user: artifacts.decoded.payload.user }
+            };
         }
     });
 

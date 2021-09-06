@@ -18,7 +18,11 @@ const login = async (request, h) => {
     const isValid = await Bcrypt.compare(request.payload.password, user.password);
 
     if (isValid) {
-        return GenerateRefreshToken(user.id);
+        request.cookieAuth.set({
+            token: GenerateRefreshToken(user.id).token,
+            id: user.id
+        });
+        return h.response('Logged in');
     }
 
     throw Boom.forbidden('Invalid credentials.');
@@ -36,7 +40,11 @@ const create = async (request, h) => {
     await Knex('users').insert(user);
     const [max] = await Knex('users').max('id');
 
-    return GenerateRefreshToken(max);
+    request.cookieAuth.set({
+        token: GenerateRefreshToken(max).token,
+        id: max
+    });
+    return h.response('Signup complete');
 };
 
 const info = async (request, h) => {
@@ -81,20 +89,13 @@ const update = async (request, h) => {
 const sendToken = async (request, h) => {
 
     const client = request.redis.client;
-    const bearer = request.headers.authorization;
-    const token = bearer.substring(7, bearer.length);
 
     try {
-        const val = await client.get(token);
+        const val = await client.get(request.auth.credentials.token);
         if (!val) {
-            request.cookieAuth.set({
-                token: GenerateAuthToken(request.auth.credentials.user.id).token,
-                id: request.auth.credentials.user.id
-            });
-            return h.response('Sent auth token');
+            return GenerateAuthToken(request.auth.credentials.user.id);
         }
 
-        request.cookieAuth.clear();
         return Boom.unauthorized('Invalid auth token');
     }
     catch (err) {
@@ -105,8 +106,7 @@ const sendToken = async (request, h) => {
 
 const logout = async (request, h) => {
 
-    const bearer = request.headers.authorization;
-    const token = bearer.substring(7, bearer.length);
+    const token = request.auth.credentials.token;
     await BlacklistRefreshToken(request, token);
     request.cookieAuth.clear();
 

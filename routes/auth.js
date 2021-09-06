@@ -47,10 +47,6 @@ module.exports = [
             },
             auth: {
                 mode: 'try'
-            },
-            cors: {
-                credentials: true,
-                origin: ['http://localhost:3000']
             }
         },
         handler: AuthHandlers.create
@@ -96,13 +92,17 @@ module.exports = [
             },
             auth: {
                 strategies: ['refresh_token']
+            },
+            cors: {
+                credentials: true,
+                origin: ['http://localhost:3000']
             }
         },
         handler: AuthHandlers.sendToken
     },
     {
         method: 'POST',
-        path: '/logout',
+        path: '/refresh/revoke',
         options: {
             description: 'Logout user',
             notes: 'This route should invalidate refresh token.',
