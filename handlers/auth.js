@@ -4,6 +4,8 @@ const Knex = require('../database');
 const Boom = require('@hapi/boom');
 const Bcrypt = require('bcrypt');
 const GenerateAuthToken = require('../utils/GenerateAuthToken');
+const GenerateRefreshToken = require('../utils/GenerateRefreshToken');
+const BlacklistRefreshToken = require('../utils/BlacklistRefreshToken');
 
 const login = async (request, h) => {
 
@@ -16,7 +18,7 @@ const login = async (request, h) => {
     const isValid = await Bcrypt.compare(request.payload.password, user.password);
 
     if (isValid) {
-        return GenerateAuthToken(user.id);
+        return GenerateRefreshToken(user.id);
     }
 
     throw Boom.forbidden('Invalid credentials.');
@@ -31,9 +33,10 @@ const create = async (request, h) => {
 
     user.password = hash;
 
-    const [createdId] = await Knex('users').insert(user);
+    await Knex('users').insert(user);
+    const [max] = await Knex('users').max('id');
 
-    return GenerateAuthToken(createdId);
+    return GenerateRefreshToken(max);
 };
 
 const info = async (request, h) => {
@@ -75,4 +78,39 @@ const update = async (request, h) => {
     };
 };
 
-module.exports = { login, create, info, update };
+const sendToken = async (request, h) => {
+
+    const client = request.redis.client;
+    const bearer = request.headers.authorization;
+    const token = bearer.substring(7, bearer.length);
+
+    try {
+        const val = await client.get(token);
+        if (!val) {
+            request.cookieAuth.set({
+                token: GenerateAuthToken(request.auth.credentials.user.id).token,
+                id: request.auth.credentials.user.id
+            });
+            return h.response('Sent auth token');
+        }
+
+        request.cookieAuth.clear();
+        return Boom.unauthorized('Invalid auth token');
+    }
+    catch (err) {
+        throw Boom.internal('Internal Redis error.');
+    }
+
+};
+
+const logout = async (request, h) => {
+
+    const bearer = request.headers.authorization;
+    const token = bearer.substring(7, bearer.length);
+    await BlacklistRefreshToken(request, token);
+    request.cookieAuth.clear();
+
+    return h.response('Logout');
+};
+
+module.exports = { login, create, info, update, sendToken, logout };

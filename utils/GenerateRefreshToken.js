@@ -13,11 +13,11 @@ module.exports = (id) => {
             } // Write user information on the token
         },
         {
-            key: 'auth_token_secret',
+            key: 'refresh_token_secret',
             algorithm: 'HS512'
         },
         {
-            ttlSec: 300 // 5 minutes
+            ttlSec: 2592000 // 1 month
         }
     ) };
 };
